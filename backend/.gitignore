@@ -1,0 +1,6 @@
+
+backend/data/*.csv
+
+backend/data/*.json
+
+backend/data/__pycache__/

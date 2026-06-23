@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg:       #030712;
+  --surface:  #0B1117;
+  --s2:       #0d1520;
+  --s3:       #111c2a;
+  --border:   #1F2937;
+  --b2:       #263447;
+  --b3:       #2d3f55;
+  --cyan:     #38BDF8;
+  --indigo:   #818CF8;
+  --green:    #4ADE80;
+  --red:      #F87171;
+  --amber:    #FBBF24;
+  --violet:   #C084FC;
+  --text:     #F1F5F9;
+  --text2:    #94A3B8;
+  --text3:    #475569;
+  --text4:    #2d3f55;
+}
+
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); }
+* { box-sizing: border-box; }
+
+::-webkit-scrollbar       { width: 3px; height: 3px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--b3); border-radius: 4px; }
+
+@layer utilities {
+  .font-mono-rr { font-family: 'JetBrains Mono', monospace; }
+  .scanline::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(56,189,248,.012) 3px, rgba(56,189,248,.012) 4px
+    );
+  }
+}

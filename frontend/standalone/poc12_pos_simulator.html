@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Real Rails · PoC #12 · POS Transaction Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#030712;--surface:#0B1117;--s2:#0d1520;--s3:#111c2a;
+  --border:#1F2937;--b2:#263447;--b3:#2d3f55;
+  --cyan:#38BDF8;--indigo:#818CF8;--green:#4ADE80;--red:#F87171;--amber:#FBBF24;--violet:#C084FC;
+  --text:#F1F5F9;--text2:#94A3B8;--text3:#475569;--text4:#2d3f55;
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;line-height:1.5}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b3);border-radius:4px}
+
+/* ── HEADER ── */
+.hdr{display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 20px;
+  border-bottom:1px solid var(--border);background:rgba(11,17,23,0.92);
+  backdrop-filter:blur(16px);position:relative;z-index:50;flex-shrink:0}
+.hdr-l{display:flex;align-items:center;gap:10px}
+.logo{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#0ea5e9,#6366f1);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.hdr-title{font-size:12px;font-weight:600;letter-spacing:0.05em;color:var(--text2)}
+.hdr-title b{color:var(--text);font-weight:700}
+.pill{display:inline-flex;align-items:center;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.06em;padding:3px 10px;border:1px solid}
+.pill-poc{background:#071520;border-color:var(--b2);color:var(--cyan)}
+.pill-geo{background:#0d1520;border-color:var(--b2);color:var(--violet)}
+.hdr-r{display:flex;align-items:center;gap:12px}
+.api-ind{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid;letter-spacing:0.05em}
+.api-mock{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.3);color:var(--amber)}
+.api-live{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.3);color:var(--green)}
+.api-dot{width:5px;height:5px;border-radius:50%;animation:pulse 1.8s infinite}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+#clock{font-family:var(--mono);font-size:11px;color:var(--text2)}
+.hdr-meta{font-size:10px;color:var(--text3);letter-spacing:.04em}
+
+/* ── APP LAYOUT ── */
+.app{display:flex;height:calc(100vh - 48px);width:100%;overflow:hidden}
+
+/* ── STAGE 70% ── */
+.stage{width:70%;min-width:0;flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
+
+/* ── SIDEBAR 30% ── */
+.sbar{width:30%;min-width:0;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden}
+.sbar-inner{overflow-y:auto;flex:1}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)}
+.tab{padding:11px 18px;font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;
+  border-bottom:2px solid transparent;transition:color .18s,border-color .18s;letter-spacing:.03em;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none}
+.tab:hover{color:var(--text2)}
+.tab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
+.tab-pane{display:none;flex:1;overflow-y:auto;overflow-x:hidden;flex-direction:column}
+.tab-pane.on{display:flex}
+
+/* ── SECTION LABEL ── */
+.slabel{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+
+/* ── TERMINAL PANE ── */
+.term-wrap{padding:20px 24px;display:flex;flex-direction:column;gap:16px;flex:1;overflow-y:auto;width:100%}
+
+/* Entry method grid — full width */
+.em-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%}
+.em-btn{background:var(--s2);border:1px solid var(--border);border-radius:10px;
+  padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s;user-select:none;width:100%}
+.em-btn:hover{border-color:var(--b3);background:var(--s3)}
+.em-btn.on{background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.5);box-shadow:0 0 0 1px rgba(56,189,248,.12)}
+.em-icon{font-size:22px;display:block;margin-bottom:6px;line-height:1}
+.em-label{font-size:11px;font-weight:600;color:var(--text2)}
+.em-btn.on .em-label{color:var(--cyan)}
+.em-sub{font-size:9px;color:var(--text3);margin-top:2px}
+
+/* Offline banner */
+.off-banner{display:none;align-items:center;gap:8px;background:rgba(251,191,36,.07);
+  border:1px solid rgba(251,191,36,.25);border-radius:10px;padding:10px 14px;
+  font-size:11px;color:var(--amber);line-height:1.4;width:100%}
+.off-banner.show{display:flex}
+.off-dot{width:7px;height:7px;background:var(--amber);border-radius:50%;flex-shrink:0;animation:pulse 1.4s infinite}
+
+/* Terminal device — full width */
+.device{background:var(--surface);border:1px solid var(--b2);border-radius:16px;
+  padding:20px;position:relative;overflow:hidden;width:100%}
+.device::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.5}
+
+/* Screen — full width */
+.screen{background:#010c12;border:1px solid rgba(31,41,55,.8);border-radius:12px;
+  padding:20px;min-height:170px;display:flex;flex-direction:column;justify-content:space-between;
+  position:relative;overflow:hidden;margin-bottom:16px;width:100%}
+.screen::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(56,189,248,.012) 3px,rgba(56,189,248,.012) 4px)}
+.sc-brand{font-size:8px;font-family:var(--mono);color:var(--text4);letter-spacing:.18em;text-transform:uppercase}
+.sc-amount{font-size:36px;font-weight:600;color:var(--text);letter-spacing:-2px;margin:10px 0 4px;font-family:var(--mono)}
+.sc-sub{font-size:12px;color:var(--text2)}
+.sc-status{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.07em;
+  padding:6px 14px;border-radius:6px;margin-top:12px;font-family:var(--mono)}
+.st-ready{background:rgba(56,189,248,.1);color:var(--cyan);border:1px solid rgba(56,189,248,.25)}
+.st-proc{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.25);animation:blink .75s infinite}
+.st-ok{background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.25)}
+.st-fail{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
+
+.card-strip{background:linear-gradient(135deg,#0d1e2e,#150e2a);border:1px solid var(--b2);
+  border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.card-num{font-family:var(--mono);font-size:12px;color:var(--text2);letter-spacing:.08em}
+.card-brand-b{font-size:11px;font-weight:700;color:var(--indigo);background:rgba(129,140,248,.12);
+  padding:3px 10px;border-radius:4px;border:1px solid rgba(129,140,248,.2)}
+
+/* Action row */
+.act-row{display:flex;gap:10px;width:100%}
+.btn-run{flex:1;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.4);color:var(--cyan);
+  border-radius:9px;padding:12px;font:600 13px/1 var(--font);cursor:pointer;transition:all .2s;letter-spacing:.04em}
+.btn-run:hover:not(:disabled){background:rgba(56,189,248,.22)}
+.btn-run:disabled{opacity:.5;cursor:not-allowed}
+.btn-rst{background:var(--s2);border:1px solid var(--border);color:var(--text2);
+  border-radius:9px;padding:12px 18px;font:500 13px/1 var(--font);cursor:pointer;transition:all .2s}
+.btn-rst:hover{border-color:var(--b3);color:var(--text)}
+
+/* Offline toggle */
+.off-toggle{display:flex;align-items:center;justify-content:space-between;
+  background:var(--s2);border:1px solid var(--border);border-radius:9px;
+  padding:11px 14px;margin-top:12px;cursor:pointer;transition:all .2s;user-select:none;width:100%}
+.off-toggle.on{border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.05)}
+.tog-label{font-size:12px;font-weight:500;color:var(--text3);display:flex;align-items:center;gap:6px}
+.off-toggle.on .tog-label{color:var(--amber)}
+.tog-sw{width:32px;height:18px;background:var(--b2);border-radius:20px;position:relative;transition:background .25s;flex-shrink:0}
+.tog-sw.on{background:var(--amber)}
+.tog-knob{position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .25s;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.tog-sw.on .tog-knob{left:17px}
+
+/* EMV log */
+.emv-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;width:100%}
+.emv-head{font-size:10px;font-weight:700;color:var(--indigo);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.emv-row{display:grid;grid-template-columns:160px 32px 1fr 1fr;gap:8px;
+  align-items:start;padding:5px 0;border-bottom:1px solid rgba(31,41,55,.5);
+  opacity:0;transform:translateX(-6px);transition:opacity .25s,transform .25s}
+.emv-row:last-child{border:none}
+.emv-row.vis{opacity:1;transform:none}
+.emv-phase{font-size:9px;font-weight:700;color:var(--indigo);font-family:var(--mono)}
+.emv-tag{font-family:var(--mono);font-size:9px;color:var(--text3)}
+.emv-val{font-family:var(--mono);font-size:9px;color:var(--cyan);word-break:break-all}
+.emv-desc{font-size:9px;color:var(--text2);text-align:right}
+
+/* Result card */
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;width:100%;animation:fadeUp .3s ease forwards}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:12px}
+.rg-l{color:var(--text3)}
+.rg-v{color:var(--text);font-family:var(--mono)}
+.rg-ok{color:var(--green);font-weight:700}
+.rg-fail{color:var(--red);font-weight:700}
+.rg-warn{color:var(--amber);font-weight:600}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* ── ANALYTICS PANE ── */
+.ana-wrap{padding:20px 24px;display:flex;flex-direction:column;gap:14px;flex:1;overflow-y:auto;width:100%}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;width:100%}
+.chart-title{font-size:10px;font-weight:700;color:var(--text2);letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px}
+.chart-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}
+.stat-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%}
+.mcard{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.mc-label{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.mc-val{font-size:18px;font-weight:700;color:var(--text);font-family:var(--mono);letter-spacing:-.5px}
+.mc-sub{font-size:9px;margin-top:3px;color:var(--text3)}
+.up{color:var(--green)}.dn{color:var(--red)}
+
+/* ── RECEIPTS PANE ── */
+.rcpt-wrap{padding:16px 24px;flex:1;overflow-y:auto;width:100%}
+.rcpt-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.rcpt-tbl th{text-align:left;color:var(--text3);font-weight:600;font-size:9px;
+  letter-spacing:.1em;text-transform:uppercase;padding:7px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+.rcpt-tbl td{padding:8px 10px;border-bottom:1px solid rgba(31,41,55,.45);
+  color:var(--text2);font-family:var(--mono);font-size:10px;white-space:nowrap}
+.rcpt-tbl tr:hover td{background:var(--s2)}
+.pill-ok{background:rgba(74,222,128,.09);color:var(--green);border:1px solid rgba(74,222,128,.2);
+  font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;font-family:var(--font)}
+.pill-fail{background:rgba(248,113,113,.09);color:var(--red);border:1px solid rgba(248,113,113,.2);
+  font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;font-family:var(--font)}
+.tbl-empty{text-align:center;color:var(--text3);padding:30px;font-size:11px}
+
+/* ── OFFLINE PANE ── */
+.saf-wrap{padding:16px 24px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;width:100%}
+.info-blk{background:var(--s2);border:1px solid var(--border);border-left:2px solid var(--cyan);
+  border-radius:0 8px 8px 0;padding:12px 14px;font-size:11px;color:var(--text2);line-height:1.6}
+.info-blk b{color:var(--text);font-weight:600}
+.saf-item{background:var(--surface);border:1px solid var(--border);border-radius:9px;
+  padding:12px 14px;display:flex;justify-content:space-between;align-items:center;
+  animation:slideIn .25s ease forwards}
+@keyframes slideIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.saf-id{font-family:var(--mono);font-size:9px;color:var(--text3)}
+.saf-card{font-size:10px;color:var(--text2);margin-top:2px}
+.saf-amt{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--amber);text-align:right}
+.saf-tags{display:flex;gap:4px;justify-content:flex-end;margin-top:4px}
+.tag{font-size:8px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid}
+.tag-pend{background:rgba(251,191,36,.09);color:var(--amber);border-color:rgba(251,191,36,.25)}
+.tag-risk{background:rgba(248,113,113,.09);color:var(--red);border-color:rgba(248,113,113,.25)}
+.saf-sum{background:var(--surface);border:1px solid var(--border);border-radius:9px;
+  padding:11px 14px;display:flex;justify-content:space-between;font-size:11px;align-items:center}
+.saf-sv{color:var(--amber);font-weight:700;font-family:var(--mono)}
+.empty-msg{color:var(--text3);font-size:11px;text-align:center;padding:28px 0}
+
+/* ── SIDEBAR SECTIONS ── */
+.sec{padding:16px 18px;border-bottom:1px solid var(--border)}
+.sec:last-child{border-bottom:none}
+.sec-head{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.sec-head::before{content:'';width:2px;height:11px;background:var(--cyan);border-radius:2px;display:inline-block;flex-shrink:0}
+.met-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.met-card{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.met-label{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.met-val{font-size:20px;font-weight:700;color:var(--text);font-family:var(--mono);letter-spacing:-.5px}
+.met-sub{font-size:9px;margin-top:2px;color:var(--text3)}
+.gov-item{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid rgba(31,41,55,.55)}
+.gov-item:last-child{border:none}
+.gov-ic{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
+.gov-name{font-size:11px;font-weight:600;color:var(--text);margin-bottom:1px}
+.gov-sub{font-size:10px;color:var(--text3)}
+.fil-row{display:flex;flex-direction:column;gap:8px}
+.fil-item{display:flex;flex-direction:column;gap:4px}
+.fil-label{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.fil-sel{background:var(--s2);border:1px solid var(--border);color:var(--text2);
+  border-radius:6px;padding:7px 10px;font:12px var(--font);width:100%;outline:none;appearance:none;cursor:pointer}
+.fil-sel:focus{border-color:rgba(56,189,248,.5)}
+.dl-btn{width:100%;background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.3);
+  color:var(--indigo);border-radius:8px;padding:10px;font:600 11px/1 var(--font);
+  cursor:pointer;transition:all .2s;letter-spacing:.05em;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px}
+.dl-btn:hover{background:rgba(129,140,248,.2)}
+.dl-note{font-size:10px;color:var(--text3);line-height:1.5;margin-bottom:2px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-l">
+    <div class="logo">RR</div>
+    <span class="hdr-title"><b>REAL RAILS</b> · Intelligence Library</span>
+    <span class="pill pill-poc">PoC #12</span>
+    <span class="pill pill-geo">● Geographic</span>
+  </div>
+  <div class="hdr-r">
+    <div class="api-ind api-mock" id="apiInd">
+      <div class="api-dot" id="apiDot" style="background:var(--amber)"></div>
+      <span id="apiLbl">MOCK DATA</span>
+    </div>
+    <span class="hdr-meta">POS TRANSACTION SIMULATOR</span>
+    <div class="live-dot"></div>
+    <span id="clock">--:--:--</span>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- ═══════════════ STAGE 70% ═══════════════ -->
+  <div class="stage">
+    <div class="tabs">
+      <button class="tab on"  onclick="goTab('sim')">Terminal Simulator</button>
+      <button class="tab"     onclick="goTab('ana')">Decline Analytics</button>
+      <button class="tab"     onclick="goTab('rcpt')">Receipt Log</button>
+      <button class="tab"     onclick="goTab('off')">Offline Queue</button>
+    </div>
+
+    <!-- ── TERMINAL ── -->
+    <div class="tab-pane on" id="pane-sim">
+      <div class="term-wrap">
+
+        <div>
+          <div class="slabel">Entry Method</div>
+          <div class="em-grid">
+            <div class="em-btn on" data-m="Contactless" onclick="pickMethod(this)">
+              <span class="em-icon">📱</span><div class="em-label">Contactless</div><div class="em-sub">NFC / EMV</div>
+            </div>
+            <div class="em-btn" data-m="Chip" onclick="pickMethod(this)">
+              <span class="em-icon">💳</span><div class="em-label">Chip</div><div class="em-sub">EMV ICC</div>
+            </div>
+            <div class="em-btn" data-m="Swipe" onclick="pickMethod(this)">
+              <span class="em-icon">⬅️</span><div class="em-label">Swipe</div><div class="em-sub">Mag-stripe</div>
+            </div>
+            <div class="em-btn" data-m="Manual Entry" onclick="pickMethod(this)">
+              <span class="em-icon">⌨️</span><div class="em-label">Manual</div><div class="em-sub">MOTO / CNP</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="off-banner" id="offBanner">
+          <div class="off-dot"></div>
+          <div><b>OFFLINE MODE ACTIVE</b> — No bank connection. Approved transactions stored locally via Store &amp; Forward.</div>
+        </div>
+
+        <div class="device">
+          <div class="screen">
+            <div>
+              <div class="sc-brand">REAL RAILS TERMINAL · EMV V4.3 · PCI-PTS 6.X</div>
+              <div class="sc-amount" id="scAmt">$0.00</div>
+              <div class="sc-sub" id="scSub">Insert, tap, or swipe card — then press PROCESS</div>
+            </div>
+            <div>
+              <div class="card-strip">
+                <span class="card-num" id="scNum">•••• •••• •••• ─ ─ ─ ─</span>
+                <span class="card-brand-b" id="scBrand">─ ─ ─</span>
+              </div>
+              <div><span class="sc-status st-ready" id="scStat">READY</span></div>
+            </div>
+          </div>
+          <div class="act-row">
+            <button class="btn-run" id="runBtn" onclick="runTxn()">▶  PROCESS TRANSACTION</button>
+            <button class="btn-rst" onclick="resetTerm()">↺  Reset</button>
+          </div>
+          <div class="off-toggle" id="offTog" onclick="toggleOff()">
+            <span class="tog-label" id="togLbl">☁&nbsp; Online Mode — Bank connection active</span>
+            <div class="tog-sw" id="togSw"><div class="tog-knob"></div></div>
+          </div>
+        </div>
+
+        <div class="emv-box" id="emvBox" style="display:none">
+          <div class="emv-head">⚡ EMV Chip Handshake — Live Protocol Log</div>
+          <div id="emvRows"></div>
+        </div>
+
+        <div class="result-card" id="resCard" style="display:none">
+          <div class="slabel" style="margin-bottom:10px">Transaction Result</div>
+          <div class="rg" id="resGrid"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── ANALYTICS ── -->
+    <div class="tab-pane" id="pane-ana">
+      <div class="ana-wrap">
+        <div class="chart-2col">
+          <div class="chart-card"><div class="chart-title">Decline Categories</div>
+            <div style="position:relative;height:220px"><canvas id="donutChart" role="img" aria-label="Decline categories">Decline categories.</canvas></div>
+          </div>
+          <div class="chart-card"><div class="chart-title">Top Decline Codes</div>
+            <div style="position:relative;height:220px"><canvas id="barChart" role="img" aria-label="Decline codes">Decline codes.</canvas></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Entry Method Market Share — Fed Reserve Payments Study 2022</div>
+          <div style="position:relative;height:170px"><canvas id="entryChart" role="img" aria-label="Entry methods">Entry methods.</canvas></div>
+        </div>
+        <div class="stat-4">
+          <div class="mcard"><div class="mc-label">Total Declines</div><div class="mc-val" id="aTotDec">—</div><div class="mc-sub">Benchmark</div></div>
+          <div class="mcard"><div class="mc-label">Top Reason</div><div class="mc-val" style="font-size:13px" id="aTopR">—</div><div class="mc-sub" id="aTopC">—</div></div>
+          <div class="mcard"><div class="mc-label">Approval Rate</div><div class="mc-val up">78%</div><div class="mc-sub up">Fed Reserve avg</div></div>
+          <div class="mcard"><div class="mc-label">Avg Ticket</div><div class="mc-val">$58</div><div class="mc-sub">Card-present</div></div>
+        </div>
+        <div style="font-size:9px;color:var(--text3);padding-bottom:4px">ⓘ Sources: CFPB Consumer Credit Reports · Federal Reserve Payments Study (2022)</div>
+      </div>
+    </div>
+
+    <!-- ── RECEIPTS ── -->
+    <div class="tab-pane" id="pane-rcpt">
+      <div class="rcpt-wrap">
+        <div class="slabel" style="margin-bottom:12px">Digital Receipt Log — Mandatory CFPB / Reg E Compliance Fields</div>
+        <div style="overflow-x:auto">
+          <table class="rcpt-tbl">
+            <thead><tr><th>TXN ID</th><th>Time</th><th>Merchant</th><th>Amount</th><th>Card</th><th>Method</th><th>Status</th><th>Auth Code</th></tr></thead>
+            <tbody id="rcptBody"><tr><td class="tbl-empty" colspan="8">Run a transaction to populate the log.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OFFLINE QUEUE ── -->
+    <div class="tab-pane" id="pane-off">
+      <div class="saf-wrap">
+        <div class="info-blk">
+          When a terminal loses bank connectivity, approved transactions are stored locally using <b>offline authorization tokens</b> derived from the card's EMV chip. These are replayed to the acquiring bank on reconnect.<br><br>
+          <b>Risk rule:</b> Transactions over $200 are flagged — the card's floor limit has been exceeded and issuer auth cannot be confirmed offline.
+        </div>
+        <div id="safList"><div class="empty-msg">Enable Offline Mode and run transactions to populate the Store &amp; Forward queue.</div></div>
+        <div id="safSum" style="display:none" class="saf-sum">
+          <span>Pending: <span class="saf-sv" id="safCnt">0</span></span>
+          <span>Total exposure: <span class="saf-sv" id="safTot">$0.00</span></span>
+          <span style="font-size:9px;color:var(--text3)">⚡ Auto-sync on reconnect</span>
+        </div>
+      </div>
+    </div>
+  </div><!-- /stage -->
+
+  <!-- ═══════════════ SIDEBAR 30% ═══════════════ -->
+  <div class="sbar">
+    <div class="sbar-inner">
+
+      <div class="sec">
+        <div class="sec-head">Section A — Live Metrics</div>
+        <div class="met-2">
+          <div class="met-card"><div class="met-label">Transactions</div><div class="met-val" id="mTxn">0</div><div class="met-sub">This session</div></div>
+          <div class="met-card"><div class="met-label">Revenue</div><div class="met-val" style="font-size:15px" id="mRev">$0</div><div class="met-sub up">Approved</div></div>
+          <div class="met-card"><div class="met-label">Approvals</div><div class="met-val up" id="mApp">0</div><div class="met-sub" id="mAppPct">─</div></div>
+          <div class="met-card"><div class="met-label">Declines</div><div class="met-val dn" id="mDec">0</div><div class="met-sub" id="mDecPct">─</div></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-head">Section B — Why This Matters</div>
+        <div class="info-blk">
+          The POS terminal is the <b>last mile of every payment</b>. A broken terminal means $0 revenue — no fallback. One hour of peak downtime costs a busy restaurant <b>$800–$2,400</b> in direct lost sales.<br><br>
+          This simulator exposes the invisible mechanics: the EMV chip handshake, offline auth fallback, and decline codes that determine whether a customer walks away satisfied or humiliated.<br><br>
+          Sources: <b>CFPB Consumer Credit Reports</b> · <b>Federal Reserve Payments Study</b>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-head">Section C — Who Controls the Rail</div>
+        <div class="gov-item"><div class="gov-ic" style="background:rgba(56,189,248,.1)">🏭</div><div><div class="gov-name">POS Manufacturer</div><div class="gov-sub">Verifone, Ingenico, PAX — hardware &amp; firmware</div></div></div>
+        <div class="gov-item"><div class="gov-ic" style="background:rgba(129,140,248,.1)">🏦</div><div><div class="gov-name">Acquirer / Processor</div><div class="gov-sub">Stripe, Square, Worldpay — merchant settlement</div></div></div>
+        <div class="gov-item"><div class="gov-ic" style="background:rgba(74,222,128,.1)">🌐</div><div><div class="gov-name">Card Networks</div><div class="gov-sub">Visa &amp; Mastercard — interchange &amp; routing</div></div></div>
+        <div class="gov-item"><div class="gov-ic" style="background:rgba(251,191,36,.1)">📋</div><div><div class="gov-name">EMVCo</div><div class="gov-sub">Global chip &amp; contactless standards body</div></div></div>
+        <div class="gov-item"><div class="gov-ic" style="background:rgba(248,113,113,.1)">⚖️</div><div><div class="gov-name">Regulators</div><div class="gov-sub">Federal Reserve · CFPB — Reg E / Durbin Amendment</div></div></div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-head">Section D — Filters</div>
+        <div class="fil-row">
+          <div class="fil-item"><div class="fil-label">Entry Method</div>
+            <select class="fil-sel" id="filMethod" onchange="applyFil()">
+              <option value="all">All Methods</option>
+              <option value="Contactless">Contactless</option>
+              <option value="Chip">Chip</option>
+              <option value="Swipe">Swipe</option>
+              <option value="Manual Entry">Manual Entry</option>
+            </select>
+          </div>
+          <div class="fil-item"><div class="fil-label">Status</div>
+            <select class="fil-sel" id="filStatus" onchange="applyFil()">
+              <option value="all">All</option>
+              <option value="APPROVED">Approved only</option>
+              <option value="DECLINED">Declined only</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-head">Section E — Sample Data</div>
+        <div class="dl-note">Synthetic dataset: 20 terminal events with EMV fields, receipt fields, and offline auth tokens. Labeled per CFPB Reg E disclosure requirements.</div>
+        <button class="dl-btn" onclick="dlData()">⬇ &nbsp;Download Sample Data (JSON)</button>
+      </div>
+
+    </div>
+  </div><!-- /sbar -->
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════ CONFIG ════════════════════
+const API_BASE = 'http://localhost:8000';
+let useAPI = false;
+
+// ═══════════════════════ STATE ═════════════════════
+const S={txn:0,rev:0,app:0,dec:0,offline:false,method:'Contactless',receipts:[],saf:[],chartBuilt:false,charts:{}};
+
+// ═══════════════════════ DATA ══════════════════════
+const MERCHANTS=['Corner Deli','Urban Coffee','QuickMart','The Food Hall','Pharmacy Plus','Fuel & Go','BookNook','Electronics Hub'];
+const BRANDS=['Visa','Mastercard','Amex','Discover'];
+const DECLINES=[
+  {code:'51',label:'Insufficient Funds',cat:'Balance',pct:25},
+  {code:'55',label:'Incorrect PIN',cat:'Auth Failure',pct:20},
+  {code:'91',label:'Bank Unavailable',cat:'Network',pct:9},
+  {code:'05',label:'Do Not Honor',cat:'Issuer Block',pct:8},
+  {code:'76',label:'Chip Read Error',cat:'Hardware',pct:8},
+  {code:'54',label:'Expired Card',cat:'Data Error',pct:8},
+  {code:'57',label:'Not Permitted',cat:'Issuer Block',pct:7},
+  {code:'62',label:'Restricted Card',cat:'Issuer Block',pct:5},
+  {code:'14',label:'Invalid Card Number',cat:'Data Error',pct:5},
+  {code:'96',label:'System Error',cat:'Technical',pct:5},
+];
+const EMV_STEPS=[
+  {ph:'SELECT APPLICATION', tag:'84',   val:()=>'A0000000031010',                             desc:'AID — Visa Credit'},
+  {ph:'GET PROCESSING OPT', tag:'9F02', val:(a)=>String(Math.round(a*100)).padStart(12,'0'),  desc:'Amount encoded (cents)'},
+  {ph:'READ RECORD',        tag:'5F28', val:()=>'0840',                                        desc:'Issuer Country: USA'},
+  {ph:'OFFLINE DATA AUTH',  tag:'9F27', val:()=>'40',                                          desc:'TC — Transaction Cert'},
+  {ph:'CARDHOLDER VERIFY',  tag:'9F34', val:()=>'420300',                                      desc:'CVM: Online PIN'},
+  {ph:'TERMINAL RISK MGMT', tag:'9F1A', val:()=>'0840',                                        desc:'Terminal Country: USA'},
+  {ph:'FIRST GENERATE AC',  tag:'9F26', val:()=>rHex(16),                                      desc:'Application Cryptogram'},
+  {ph:'ONLINE AUTH REQ',    tag:'9F37', val:()=>rHex(8),                                       desc:'Unpredictable Number'},
+  {ph:'ISSUER RESPONSE',    tag:'8A',   val:()=>'3030',                                        desc:'Auth: 00 Approved'},
+  {ph:'SECOND GENERATE AC', tag:'9F26', val:()=>rHex(16),                                      desc:'TC — Completed'},
+];
+
+// ═══════════════════════ HELPERS ═══════════════════
+function rn(a,b){return Math.random()*(b-a)+a}
+function ri(a,b){return Math.floor(rn(a,b))}
+function rHex(n){return [...Array(n)].map(()=>ri(0,16).toString(16)).join('').toUpperCase()}
+function rAmt(){return rn(2.5,450).toFixed(2)}
+function rCard(){return{brand:BRANDS[ri(0,4)],last4:String(ri(1000,9999))}}
+function rMerch(){return MERCHANTS[ri(0,MERCHANTS.length)]}
+function rDecline(){const pool=DECLINES.flatMap(d=>[...Array(d.pct)].map(()=>d));return pool[ri(0,pool.length)];}
+function tNow(){return new Date().toTimeString().slice(0,8)}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function set(id,v){const e=document.getElementById(id);if(e)e.textContent=v}
+function setStat(txt,cls){const e=document.getElementById('scStat');e.className='sc-status '+cls;e.textContent=txt}
+
+// ═══════════════════════ API PROBE ═════════════════
+async function probeAPI(){
+  try{
+    const r=await fetch(API_BASE+'/health',{signal:AbortSignal.timeout(2000)});
+    if(r.ok){setMode(true);return;}
+  }catch{}
+  setMode(false);
+}
+function setMode(live){
+  useAPI=live;
+  const ind=document.getElementById('apiInd');
+  const dot=document.getElementById('apiDot');
+  const lbl=document.getElementById('apiLbl');
+  ind.className='api-ind '+(live?'api-live':'api-mock');
+  dot.style.background=live?'var(--green)':'var(--amber)';
+  lbl.textContent=live?'LIVE API':'MOCK DATA';
+}
+
+// ═══════════════════════ CLOCK ═════════════════════
+setInterval(()=>set('clock',tNow()),1000);
+
+// ═══════════════════════ TABS ══════════════════════
+const TABS=['sim','ana','rcpt','off'];
+function goTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',TABS[i]===id));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pane-'+id).classList.add('on');
+  if(id==='ana'&&!S.chartBuilt){buildCharts();S.chartBuilt=true;}
+}
+
+// ═══════════════════════ ENTRY METHOD ══════════════
+function pickMethod(el){
+  document.querySelectorAll('.em-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  S.method=el.dataset.m;
+}
+
+// ═══════════════════════ OFFLINE TOGGLE ════════════
+function toggleOff(){
+  S.offline=!S.offline;
+  document.getElementById('togSw').classList.toggle('on',S.offline);
+  document.getElementById('offTog').classList.toggle('on',S.offline);
+  document.getElementById('togLbl').textContent=S.offline?'⚡  Offline Mode — Store & Forward active':'☁\u00A0 Online Mode — Bank connection active';
+  document.getElementById('offBanner').classList.toggle('show',S.offline);
+}
+
+// ═══════════════════════ TRANSACTION ═══════════════
+async function runTxn(){
+  const btn=document.getElementById('runBtn');
+  btn.disabled=true;btn.textContent='⏳  Processing…';
+  setStat('PROCESSING…','st-proc');
+
+  let d;
+  if(useAPI){
+    try{
+      const p=new URLSearchParams({entry_method:S.method,offline_mode:S.offline});
+      const res=await fetch(`${API_BASE}/api/transaction/initiate?${p}`,{method:'POST',signal:AbortSignal.timeout(5000)});
+      const raw=await res.json();
+      d={id:raw.transaction_id,amt:raw.amount.toFixed(2),merch:raw.merchant,
+        card:{brand:raw.card.brand,last4:raw.card.last4},method:S.method,
+        approved:raw.status==='APPROVED',decline:raw.decline_reason,
+        auth:raw.authorization_code||'',emv:raw.emv_handshake||[]};
+    }catch{setMode(false);d=mockTxn();}
+  }else{d=mockTxn();}
+
+  set('scAmt','$'+d.amt);
+  set('scSub',d.merch+' · '+d.method);
+  set('scNum','•••• •••• •••• '+d.card.last4);
+  set('scBrand',d.card.brand);
+
+  if(['Chip','Contactless'].includes(S.method)){
+    const steps=useAPI&&d.emv.length?d.emv.map(s=>({ph:s.phase,tag:s.tag,val:()=>s.value,desc:s.desc})):EMV_STEPS;
+    await playEmv(parseFloat(d.amt),steps);
+  }else{await sleep(900);}
+
+  setStat(d.approved?(S.offline?'APPROVED (OFFLINE)':'APPROVED'):'DECLINED — '+d.decline.label,
+    d.approved?'st-ok':'st-fail');
+
+  S.txn++;S.app+=(d.approved?1:0);S.dec+=(d.approved?0:1);
+  if(d.approved)S.rev+=parseFloat(d.amt);
+  updateMetrics();
+
+  d.time=tNow();
+  S.receipts.unshift(d);
+  renderReceipts();
+
+  if(S.offline&&d.approved){
+    S.saf.push({id:'SAF-'+rHex(6),amt:d.amt,card:d.card,time:d.time,risk:parseFloat(d.amt)>200});
+    renderSaf();
+  }
+  showResult(d);
+  btn.disabled=false;btn.textContent='▶  PROCESS TRANSACTION';
+}
+
+function mockTxn(){
+  const approved=Math.random()>0.22;
+  return{id:'TXN-'+rHex(10),amt:rAmt(),merch:rMerch(),card:rCard(),method:S.method,
+    approved,decline:approved?null:rDecline(),auth:rHex(6),emv:[]};
+}
+
+async function playEmv(amt,steps){
+  const box=document.getElementById('emvBox');
+  const rows=document.getElementById('emvRows');
+  box.style.display='block';rows.innerHTML='';
+  for(const s of steps){
+    await sleep(110);
+    const d=document.createElement('div');d.className='emv-row';
+    d.innerHTML=`<span class="emv-phase">${s.ph}</span><span class="emv-tag">${s.tag}</span><span class="emv-val">${s.val(amt)}</span><span class="emv-desc">${s.desc}</span>`;
+    rows.appendChild(d);
+    requestAnimationFrame(()=>d.classList.add('vis'));
+    rows.scrollTop=9999;
+  }
+}
+
+function showResult(d){
+  const el=document.getElementById('resCard');
+  const g=document.getElementById('resGrid');
+  el.style.display='block';
+  g.innerHTML=`
+    <span class="rg-l">Transaction ID</span><span class="rg-v">${d.id}</span>
+    <span class="rg-l">Amount</span><span class="rg-v">$${d.amt}</span>
+    <span class="rg-l">Merchant</span><span class="rg-v" style="font-family:var(--font)">${d.merch}</span>
+    <span class="rg-l">Card</span><span class="rg-v">${d.card.brand} ••••${d.card.last4}</span>
+    <span class="rg-l">Entry Method</span><span class="rg-v" style="font-family:var(--font)">${d.method}</span>
+    <span class="rg-l">Status</span><span class="rg-v ${d.approved?'rg-ok':'rg-fail'}">${d.approved?'APPROVED':'DECLINED — '+d.decline.label}</span>
+    ${d.approved?`<span class="rg-l">Auth Code</span><span class="rg-v" style="color:var(--cyan)">${d.auth}</span>`:''}
+    ${S.offline&&d.approved?`<span class="rg-l">Queue</span><span class="rg-v rg-warn">Store &amp; Forward — awaiting sync</span>`:''}
+  `;
+}
+
+function resetTerm(){
+  setStat('READY','st-ready');
+  set('scAmt','$0.00');set('scSub','Insert, tap, or swipe card — then press PROCESS');
+  set('scNum','•••• •••• •••• ─ ─ ─ ─');set('scBrand','─ ─ ─');
+  document.getElementById('emvBox').style.display='none';
+  document.getElementById('resCard').style.display='none';
+}
+
+// ═══════════════════════ METRICS ═══════════════════
+function updateMetrics(){
+  set('mTxn',S.txn);set('mRev','$'+S.rev.toFixed(0));
+  set('mApp',S.app);set('mDec',S.dec);
+  set('mAppPct',S.txn?((S.app/S.txn)*100).toFixed(0)+'%':'─');
+  set('mDecPct',S.txn?((S.dec/S.txn)*100).toFixed(0)+'%':'─');
+}
+
+// ═══════════════════════ RECEIPTS ══════════════════
+function renderReceipts(){
+  const fm=document.getElementById('filMethod').value;
+  const fs=document.getElementById('filStatus').value;
+  const rows=S.receipts.filter(r=>{
+    if(fm!=='all'&&r.method!==fm)return false;
+    if(fs==='APPROVED'&&!r.approved)return false;
+    if(fs==='DECLINED'&&r.approved)return false;
+    return true;
+  });
+  const tb=document.getElementById('rcptBody');
+  if(!rows.length){tb.innerHTML='<tr><td class="tbl-empty" colspan="8">No matching transactions.</td></tr>';return;}
+  tb.innerHTML=rows.map(r=>`<tr>
+    <td>${r.id}</td><td>${r.time}</td><td style="font-family:var(--font)">${r.merch}</td>
+    <td>$${r.amt}</td><td>${r.card.brand} ••${r.card.last4}</td>
+    <td style="font-family:var(--font)">${r.method}</td>
+    <td><span class="${r.approved?'pill-ok':'pill-fail'}">${r.approved?'APPROVED':'DECLINED'}</span></td>
+    <td>${r.approved?r.auth:'—'}</td>
+  </tr>`).join('');
+}
+function applyFil(){renderReceipts();}
+
+// ═══════════════════════ SAF ═══════════════════════
+function renderSaf(){
+  const el=document.getElementById('safList');
+  const sum=document.getElementById('safSum');
+  if(!S.saf.length){el.innerHTML='<div class="empty-msg">No pending items.</div>';sum.style.display='none';return;}
+  el.innerHTML=S.saf.map(s=>`<div class="saf-item">
+    <div><div class="saf-id">${s.id}</div><div class="saf-card">${s.card.brand} ••••${s.card.last4} · ${s.time}</div></div>
+    <div><div class="saf-amt">$${s.amt}</div><div class="saf-tags"><span class="tag tag-pend">PENDING</span>${s.risk?'<span class="tag tag-risk">⚠ HIGH VALUE</span>':''}</div></div>
+  </div>`).join('');
+  const tot=S.saf.reduce((a,s)=>a+parseFloat(s.amt),0);
+  set('safCnt',S.saf.length);set('safTot','$'+tot.toFixed(2));
+  sum.style.display='flex';
+}
+
+// ═══════════════════════ CHARTS ════════════════════
+async function buildCharts(){
+  let declineData=null;
+  if(useAPI){try{const r=await fetch(API_BASE+'/api/analytics/decline-breakdown',{signal:AbortSignal.timeout(3000)});declineData=await r.json();}catch{}}
+
+  const cats={};
+  if(declineData){
+    declineData.category_rollup.forEach(c=>{cats[c.category]=c.count;});
+    set('aTotDec',declineData.total_declines);
+    const top=declineData.breakdown.reduce((a,b)=>b.percentage>a.percentage?b:a,declineData.breakdown[0]);
+    set('aTopR',top.label);set('aTopC','Code '+top.code);
+  }else{
+    DECLINES.forEach(d=>{cats[d.cat]=(cats[d.cat]||0)+d.pct;});
+    set('aTotDec',ri(120,200));set('aTopR','Insuff. Funds');set('aTopC','Code 51');
+  }
+
+  const dKeys=Object.keys(cats),dVals=Object.values(cats);
+  if(S.charts.donut)S.charts.donut.destroy();
+  S.charts.donut=new Chart(document.getElementById('donutChart'),{
+    type:'doughnut',
+    data:{labels:dKeys,datasets:[{data:dVals,backgroundColor:['#38BDF8','#818CF8','#FBBF24','#F87171','#4ADE80'],borderColor:'#0B1117',borderWidth:2,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{position:'bottom',labels:{color:'#94A3B8',font:{size:9},boxWidth:9,padding:7}},
+               tooltip:{bodyColor:'#F1F5F9',backgroundColor:'#0d1520',borderColor:'#1F2937',borderWidth:1}}}
+  });
+
+  const top7=DECLINES.slice(0,7);
+  if(S.charts.bar)S.charts.bar.destroy();
+  S.charts.bar=new Chart(document.getElementById('barChart'),{
+    type:'bar',
+    data:{labels:top7.map(d=>d.code+': '+d.label),
+      datasets:[{label:'Share %',data:top7.map(d=>d.pct),backgroundColor:'rgba(129,140,248,.55)',borderColor:'#818CF8',borderWidth:1,borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      scales:{x:{ticks:{color:'#475569',font:{size:9}},grid:{color:'rgba(31,41,55,.7)'}},y:{ticks:{color:'#94A3B8',font:{size:9}},grid:{display:false}}},
+      plugins:{legend:{display:false}}}
+  });
+
+  let emData=[{m:'Contactless',s:41},{m:'Chip',s:38},{m:'Swipe',s:15},{m:'Manual',s:6}];
+  if(useAPI){try{const r=await fetch(API_BASE+'/api/analytics/entry-method-stats',{signal:AbortSignal.timeout(3000)});const d=await r.json();emData=d.stats.map(e=>({m:e.method,s:e.share}));}catch{}}
+  if(S.charts.entry)S.charts.entry.destroy();
+  S.charts.entry=new Chart(document.getElementById('entryChart'),{
+    type:'bar',
+    data:{labels:emData.map(e=>e.m),
+      datasets:[{label:'Market Share %',data:emData.map(e=>e.s),
+        backgroundColor:['rgba(56,189,248,.75)','rgba(56,189,248,.55)','rgba(56,189,248,.3)','rgba(56,189,248,.15)'],borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{y:{ticks:{color:'#475569',font:{size:9}},grid:{color:'rgba(31,41,55,.7)'}},x:{ticks:{color:'#94A3B8',font:{size:10}},grid:{display:false}}},
+      plugins:{legend:{display:false}}}
+  });
+}
+
+// ═══════════════════════ DOWNLOAD ══════════════════
+async function dlData(){
+  let records;
+  if(useAPI){try{const r=await fetch(API_BASE+'/api/sample-data',{signal:AbortSignal.timeout(5000)});const d=await r.json();records=d.records;}catch{}}
+  if(!records){
+    const methods=['Contactless','Chip','Swipe','Manual Entry'];
+    records=Array.from({length:20},(_,i)=>{
+      const amt=rAmt(),card=rCard(),appr=Math.random()>0.22,dec=appr?{}:rDecline();
+      return{txn_id:'TXN-'+rHex(8),timestamp:new Date(Date.now()-i*900000).toISOString(),
+        merchant:rMerch(),amount_usd:parseFloat(amt),card_brand:card.brand,last4:card.last4,
+        entry_method:methods[ri(0,4)],status:appr?'APPROVED':'DECLINED',
+        decline_code:dec.code||'',decline_reason:dec.label||'',
+        offline_auth:Math.random()<0.12,cfpb_compliant:true,
+        source:'Synthetic — Real Rails PoC #12'};
+    });
+  }
+  const blob=new Blob([JSON.stringify({dataset:'POS Transaction Simulator',poc:'12',
+    generated:new Date().toISOString(),disclaimer:'Synthetic data only.',
+    sources:['CFPB Consumer Credit Reports','Federal Reserve Payments Study 2022'],records},null,2)],
+    {type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='real_rails_poc12_sample_data.json';a.click();URL.revokeObjectURL(a.href);
+}
+
+// ═══════════════════════ INIT ══════════════════════
+probeAPI();
+setInterval(probeAPI,30000);
+</script>
+</body>
+</html>
