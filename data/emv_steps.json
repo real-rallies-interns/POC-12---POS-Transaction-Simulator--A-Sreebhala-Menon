@@ -1,0 +1,16 @@
+{
+  "disclaimer": "SYNTHETIC — NOT REAL TRANSACTION DATA",
+  "source": "EMVCo Book 3 — Application Specification v4.3",
+  "emv_steps": [
+    {"phase":"SELECT APPLICATION",      "tag":"84",   "static_value":"A0000000031010","desc":"AID — Visa Credit"},
+    {"phase":"GET PROCESSING OPTIONS",  "tag":"9F02", "static_value":"",              "desc":"Amount encoded (cents) — runtime value"},
+    {"phase":"READ RECORD",             "tag":"5F28", "static_value":"0840",          "desc":"Issuer Country Code: GBR"},
+    {"phase":"OFFLINE DATA AUTH",       "tag":"9F27", "static_value":"40",            "desc":"TC — Transaction Cert"},
+    {"phase":"CARDHOLDER VERIFICATION", "tag":"9F34", "static_value":"420300",        "desc":"CVM: Online PIN"},
+    {"phase":"TERMINAL RISK MGMT",      "tag":"9F1A", "static_value":"0826",          "desc":"Terminal Country: GBR"},
+    {"phase":"FIRST GENERATE AC",       "tag":"9F26", "static_value":"",              "desc":"Application Cryptogram — runtime UUID"},
+    {"phase":"ONLINE AUTH REQUEST",     "tag":"9F37", "static_value":"",              "desc":"Unpredictable Number — runtime UUID"},
+    {"phase":"ISSUER RESPONSE",         "tag":"8A",   "static_value":"3030",          "desc":"Auth Response: 00 Approved"},
+    {"phase":"SECOND GENERATE AC",      "tag":"9F26", "static_value":"",              "desc":"TC — Transaction Completed — runtime UUID"}
+  ]
+}

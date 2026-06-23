@@ -1,0 +1,11 @@
+code,label,category,pct,description,retry_advised
+05,Do Not Honor,Issuer Block,8,Issuer has blocked this card for unspecified reasons,False
+14,Invalid Card Number,Data Error,5,Card PAN failed Luhn check or is not on file,False
+51,Insufficient Funds,Balance,25,Available balance is below the transaction amount,False
+54,Expired Card,Data Error,8,Card expiry date has passed,False
+55,Incorrect PIN,Auth Failure,20,PIN entered does not match issuer record,True
+57,Transaction Not Permitted,Issuer Block,7,Transaction type not allowed for this card,False
+62,Restricted Card,Issuer Block,5,"Card is on a restriction list (lost, stolen, fraud)",False
+76,Chip Read Error,Hardware,8,Terminal could not read chip — try swipe fallback,True
+91,Bank Unavailable,Network,9,Issuer host is unreachable — offline auth may apply,True
+96,System Error,Technical Error,5,Acquirer or network system error — not card related,True

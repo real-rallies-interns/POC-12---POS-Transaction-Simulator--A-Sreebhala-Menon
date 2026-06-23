@@ -1,0 +1,11 @@
+make,model,nfc,emv,magstripe,pci_pts
+Verifone,V400m,True,True,True,6.x
+Ingenico,Move 5000,True,True,True,6.x
+PAX,A920 Pro,True,True,True,5.x
+Clover,Flex,True,True,True,5.x
+Square,Terminal,True,True,False,5.x
+Verifone,V240m,True,True,True,5.x
+Ingenico,Desk 3500,True,True,True,6.x
+PAX,S920,False,True,True,4.x
+Miura,M010,True,True,True,5.x
+Spire,SPp10,True,True,True,5.x

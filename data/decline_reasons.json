@@ -1,0 +1,16 @@
+{
+  "disclaimer": "SYNTHETIC — NOT REAL TRANSACTION DATA",
+  "source": "CFPB Consumer Credit Reports (benchmark distributions) · ISO 8583 response codes",
+  "decline_reasons": [
+    {"code":"05","label":"Do Not Honor",             "category":"Issuer Block",   "pct":8, "description":"Issuer has blocked this card for unspecified reasons",  "retry_advised":false},
+    {"code":"14","label":"Invalid Card Number",      "category":"Data Error",     "pct":5, "description":"Card PAN failed Luhn check or is not on file",         "retry_advised":false},
+    {"code":"51","label":"Insufficient Funds",       "category":"Balance",        "pct":25,"description":"Available balance is below the transaction amount",    "retry_advised":false},
+    {"code":"54","label":"Expired Card",             "category":"Data Error",     "pct":8, "description":"Card expiry date has passed",                         "retry_advised":false},
+    {"code":"55","label":"Incorrect PIN",            "category":"Auth Failure",   "pct":20,"description":"PIN entered does not match issuer record",            "retry_advised":true},
+    {"code":"57","label":"Transaction Not Permitted","category":"Issuer Block",   "pct":7, "description":"Transaction type not allowed for this card",          "retry_advised":false},
+    {"code":"62","label":"Restricted Card",          "category":"Issuer Block",   "pct":5, "description":"Card is on a restriction list (lost, stolen, fraud)", "retry_advised":false},
+    {"code":"76","label":"Chip Read Error",          "category":"Hardware",       "pct":8, "description":"Terminal could not read chip — try swipe fallback",   "retry_advised":true},
+    {"code":"91","label":"Bank Unavailable",         "category":"Network",        "pct":9, "description":"Issuer host is unreachable — offline auth may apply", "retry_advised":true},
+    {"code":"96","label":"System Error",             "category":"Technical Error","pct":5, "description":"Acquirer or network system error — not card related", "retry_advised":true}
+  ]
+}

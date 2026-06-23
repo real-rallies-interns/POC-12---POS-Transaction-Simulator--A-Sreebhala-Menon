@@ -1,0 +1,16 @@
+name,country,bic_prefix,type
+Barclays Bank,GBR,BARC,Traditional
+HSBC UK,GBR,MIDL,Traditional
+Lloyds Bank,GBR,LOYD,Traditional
+NatWest,GBR,NWBK,Traditional
+Santander UK,GBR,ABBG,Traditional
+Monzo Bank,GBR,MONZ,Challenger
+Starling Bank,GBR,SRLG,Challenger
+Halifax,GBR,HLFX,Traditional
+TSB Bank,GBR,TSBS,Traditional
+Metro Bank,GBR,MYMB,Challenger
+Nationwide BS,GBR,NAIA,Building Society
+Virgin Money,GBR,CYBG,Traditional
+Revolut,GBR,RVLT,Challenger
+Chase UK,GBR,JPMC,Challenger
+First Direct,GBR,FDUK,Challenger

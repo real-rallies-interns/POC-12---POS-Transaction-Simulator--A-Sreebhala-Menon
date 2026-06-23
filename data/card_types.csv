@@ -1,0 +1,4 @@
+type,weight,credit_limit_typical,overdraft_risk
+Credit,48,3500.0,False
+Debit,44,0.0,True
+Prepaid,8,0.0,True

@@ -1,0 +1,12 @@
+{
+  "disclaimer": "SYNTHETIC — NOT REAL TRANSACTION DATA",
+  "source": "Federal Reserve Payments Study 2022 (benchmark weights)",
+  "entry_methods": [
+    {"method":"Contactless",  "weight":41,"emv":true, "fraud_rate_bps":4, "pin_required":false,"description":"NFC tap — EMV tokenised, no PIN under £100"},
+    {"method":"Chip",         "weight":38,"emv":true, "fraud_rate_bps":2, "pin_required":true, "description":"EMV chip insert with online PIN verification"},
+    {"method":"Swipe",        "weight":15,"emv":false,"fraud_rate_bps":18,"pin_required":false,"description":"Magnetic stripe — no chip auth, higher fraud risk"},
+    {"method":"Manual Entry", "weight":6, "emv":false,"fraud_rate_bps":65,"pin_required":false,"description":"Card-not-present / MOTO — highest fraud risk"}
+  ],
+  "emv_entry_methods": ["Chip","Contactless"],
+  "default_entry_method": "Contactless"
+}

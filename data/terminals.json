@@ -1,0 +1,16 @@
+{
+  "disclaimer": "SYNTHETIC — NOT REAL TERMINAL DATA",
+  "source": "Real Rails PoC #12 — POS Transaction Simulator",
+  "terminals": [
+    {"make":"Verifone","model":"V400m",     "nfc":true, "emv":true, "magstripe":true, "pci_pts":"6.x"},
+    {"make":"Ingenico","model":"Move 5000", "nfc":true, "emv":true, "magstripe":true, "pci_pts":"6.x"},
+    {"make":"PAX",     "model":"A920 Pro",  "nfc":true, "emv":true, "magstripe":true, "pci_pts":"5.x"},
+    {"make":"Clover",  "model":"Flex",      "nfc":true, "emv":true, "magstripe":true, "pci_pts":"5.x"},
+    {"make":"Square",  "model":"Terminal",  "nfc":true, "emv":true, "magstripe":false,"pci_pts":"5.x"},
+    {"make":"Verifone","model":"V240m",     "nfc":true, "emv":true, "magstripe":true, "pci_pts":"5.x"},
+    {"make":"Ingenico","model":"Desk 3500", "nfc":true, "emv":true, "magstripe":true, "pci_pts":"6.x"},
+    {"make":"PAX",     "model":"S920",      "nfc":false,"emv":true, "magstripe":true, "pci_pts":"4.x"},
+    {"make":"Miura",   "model":"M010",      "nfc":true, "emv":true, "magstripe":true, "pci_pts":"5.x"},
+    {"make":"Spire",   "model":"SPp10",     "nfc":true, "emv":true, "magstripe":true, "pci_pts":"5.x"}
+  ]
+}

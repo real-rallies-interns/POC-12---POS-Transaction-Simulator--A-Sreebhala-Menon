@@ -1,0 +1,31 @@
+id,group,scenario,amount,entry_method,expected_outcome,notes
+EC-01,Amount,Zero-value auth,0.0,Chip,DECLINED,Some issuers block £0.00 pre-auth
+EC-02,Amount,Penny transaction,0.01,Contactless,APPROVED,Minimum viable amount
+EC-03,Amount,Contactless limit boundary,99.99,Contactless,APPROVED,Just under £100 contactless limit
+EC-04,Amount,Contactless limit exceeded,100.0,Contactless,PIN_REQUIRED,Requires PIN above £100
+EC-05,Amount,High-value transaction,499.99,Chip,APPROVED,Near upper simulator limit
+EC-06,Amount,Round-pound amount,50.0,Chip,APPROVED,Common grocery basket
+EC-07,Entry Method,Swipe fallback after chip fail,45.0,Swipe,APPROVED,Magstripe fallback — decline code 76
+EC-08,Entry Method,Manual entry (MOTO),120.0,Manual Entry,APPROVED,Highest fraud rate entry method
+EC-09,Entry Method,Double-tap contactless,25.0,Contactless,DECLINED,Duplicate tap within 30s window
+EC-10,Entry Method,EMV chip — offline auth,18.0,Chip,APPROVED,Offline floor limit auth
+EC-11,Card State,Expired card,30.0,Chip,DECLINED,Decline code 54
+EC-12,Card State,Stolen card,60.0,Contactless,DECLINED,Decline code 62 — Restricted Card
+EC-13,Card State,Lost card,15.0,Chip,DECLINED,Decline code 62 — Restricted Card
+EC-14,Card State,Prepaid — insufficient load,80.0,Contactless,DECLINED,Decline code 51
+EC-15,Card State,Corporate card — MCC restriction,200.0,Chip,DECLINED,Decline code 57 — Transaction Not Permitted
+EC-16,PIN,Incorrect PIN — first attempt,40.0,Chip,DECLINED,Decline code 55 — retry advised
+EC-17,PIN,PIN bypass — signature fallback,55.0,Chip,APPROVED,Older CVM list fallback
+EC-18,PIN,PIN blocked — 3 wrong attempts,70.0,Chip,DECLINED,Card blocked by issuer
+EC-19,Network,Issuer host timeout,35.0,Chip,DECLINED,Decline code 91 — Bank Unavailable
+EC-20,Network,Acquirer system error,90.0,Chip,DECLINED,Decline code 96 — System Error
+EC-21,Network,Store-and-forward approved,22.0,Contactless,SAF_QUEUED,Offline mode — transaction queued
+EC-22,Network,Store-and-forward — risk flag,250.0,Chip,SAF_RISK,SAF with amount > £200 — high risk
+EC-23,Currency,Foreign currency (USD),85.0,Chip,APPROVED,DCC may apply
+EC-24,Currency,Foreign currency (EUR),110.0,Chip,APPROVED,DCC may apply
+EC-25,Fraud,High fraud score — contactless,75.0,Contactless,DECLINED,Fraud score > 80 triggers decline
+EC-26,Fraud,Velocity check — rapid repeat,30.0,Contactless,DECLINED,5+ transactions in 10 minutes
+EC-27,Fraud,Manual entry — high fraud rate,199.0,Manual Entry,APPROVED,65 bps fraud rate — monitor
+EC-28,Terminal,Chip read error — retry,50.0,Chip,DECLINED,Decline code 76 — retry advised
+EC-29,Terminal,NFC terminal — swipe-only card,20.0,Swipe,APPROVED,Card has no NFC capability
+EC-30,Terminal,PCI PTS 4.x terminal warning,45.0,Chip,APPROVED,Older PCI PTS version — flag for review

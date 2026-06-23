@@ -1,0 +1,5 @@
+method,weight,emv,fraud_rate_bps,pin_required,description
+Contactless,41,True,4,False,"NFC tap — EMV tokenised, no PIN under £100"
+Chip,38,True,2,True,EMV chip insert with online PIN verification
+Swipe,15,False,18,False,"Magnetic stripe — no chip auth, higher fraud risk"
+Manual Entry,6,False,65,False,Card-not-present / MOTO — highest fraud risk

@@ -1,0 +1,32 @@
+{
+  "disclaimer": "SYNTHETIC — NOT REAL CARD DATA",
+  "source": "UK Finance Card Spending Report 2022 (benchmark weights)",
+  "card_brands": [
+    {"brand":"Visa",       "weight":57,"bin_prefix":"4","network":"VisaNet"},
+    {"brand":"Mastercard", "weight":32,"bin_prefix":"5","network":"Banknet"},
+    {"brand":"Amex",       "weight":7, "bin_prefix":"3","network":"AmexNet"},
+    {"brand":"Discover",   "weight":4, "bin_prefix":"6","network":"PULSE"}
+  ],
+  "card_types": [
+    {"type":"Credit",  "weight":48,"credit_limit_typical":3500.00,"overdraft_risk":false},
+    {"type":"Debit",   "weight":44,"credit_limit_typical":0.00,   "overdraft_risk":true},
+    {"type":"Prepaid", "weight":8, "credit_limit_typical":0.00,   "overdraft_risk":true}
+  ],
+  "issuing_banks": [
+    {"name":"Barclays Bank",  "country":"GBR","bic_prefix":"BARC","type":"Traditional"},
+    {"name":"HSBC UK",        "country":"GBR","bic_prefix":"MIDL","type":"Traditional"},
+    {"name":"Lloyds Bank",    "country":"GBR","bic_prefix":"LOYD","type":"Traditional"},
+    {"name":"NatWest",        "country":"GBR","bic_prefix":"NWBK","type":"Traditional"},
+    {"name":"Santander UK",   "country":"GBR","bic_prefix":"ABBG","type":"Traditional"},
+    {"name":"Monzo Bank",     "country":"GBR","bic_prefix":"MONZ","type":"Challenger"},
+    {"name":"Starling Bank",  "country":"GBR","bic_prefix":"SRLG","type":"Challenger"},
+    {"name":"Halifax",        "country":"GBR","bic_prefix":"HLFX","type":"Traditional"},
+    {"name":"TSB Bank",       "country":"GBR","bic_prefix":"TSBS","type":"Traditional"},
+    {"name":"Metro Bank",     "country":"GBR","bic_prefix":"MYMB","type":"Challenger"},
+    {"name":"Nationwide BS",  "country":"GBR","bic_prefix":"NAIA","type":"Building Society"},
+    {"name":"Virgin Money",   "country":"GBR","bic_prefix":"CYBG","type":"Traditional"},
+    {"name":"Revolut",        "country":"GBR","bic_prefix":"RVLT","type":"Challenger"},
+    {"name":"Chase UK",       "country":"GBR","bic_prefix":"JPMC","type":"Challenger"},
+    {"name":"First Direct",   "country":"GBR","bic_prefix":"FDUK","type":"Challenger"}
+  ]
+}

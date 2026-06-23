@@ -1,0 +1,5 @@
+brand,weight,bin_prefix,network
+Visa,57,4,VisaNet
+Mastercard,32,5,Banknet
+Amex,7,3,AmexNet
+Discover,4,6,PULSE

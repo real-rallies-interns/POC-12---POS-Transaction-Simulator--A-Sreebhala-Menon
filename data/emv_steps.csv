@@ -1,0 +1,11 @@
+phase,tag,static_value,desc
+SELECT APPLICATION,84,A0000000031010,AID — Visa Credit
+GET PROCESSING OPTIONS,9F02,,Amount encoded (cents) — runtime value
+READ RECORD,5F28,0840,Issuer Country Code: GBR
+OFFLINE DATA AUTH,9F27,40,TC — Transaction Cert
+CARDHOLDER VERIFICATION,9F34,420300,CVM: Online PIN
+TERMINAL RISK MGMT,9F1A,0826,Terminal Country: GBR
+FIRST GENERATE AC,9F26,,Application Cryptogram — runtime UUID
+ONLINE AUTH REQUEST,9F37,,Unpredictable Number — runtime UUID
+ISSUER RESPONSE,8A,3030,Auth Response: 00 Approved
+SECOND GENERATE AC,9F26,,TC — Transaction Completed — runtime UUID

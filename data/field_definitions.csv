@@ -1,0 +1,30 @@
+field,type,format,description,source
+transaction_id,string,TXN-{10 hex},Unique transaction identifier,Simulator
+timestamp,string,ISO 8601 UTC,Transaction datetime in UTC,Simulator
+merchant,string,free text,Merchant trading name,merchants.json
+merchant_city,string,free text,City where merchant is located,merchants.json
+merchant_country,string,ISO 3166-1 alpha-3,Country code of merchant,merchants.json
+merchant_mcc,string,4-digit ISO 18245,Merchant Category Code,ISO 18245
+merchant_category,string,free text,Human-readable MCC category label,merchants.json
+merchant_lat,float,decimal degrees,Merchant latitude for map rendering,merchants.json
+merchant_lng,float,decimal degrees,Merchant longitude for map rendering,merchants.json
+amount,float,2 decimal places,Transaction amount in the stated currency,Simulator
+currency,string,ISO 4217,Transaction currency code,ISO 4217
+card_brand,string,enum,"Card network brand (Visa, Mastercard, Amex, Discover)",UK Finance 2022
+card_type,string,enum,"Credit, Debit, or Prepaid",UK Finance 2022
+last4,string,4 digits,Last 4 digits of card PAN (synthetic),Simulator
+issuing_bank,string,free text,Name of card-issuing bank,card_brands.json
+entry_method,string,enum,How card was presented at terminal,Fed Reserve 2022
+status,string,APPROVED | DECLINED,Final transaction outcome,Simulator
+authorization_code,string,6 hex chars,Issuer approval code (null if declined),Simulator
+decline_code,string,ISO 8583,ISO 8583 response code for declined transactions,ISO 8583
+decline_reason,string,free text,Human-readable decline label,CFPB / ISO 8583
+decline_category,string,enum,Grouped decline category,CFPB
+fraud_score,integer,0–100,"Synthetic risk score (0 = low, 100 = high)",Simulator
+offline_auth,boolean,true | false,Whether transaction was authorised offline (SAF),Simulator
+processing_ms,integer,milliseconds,Simulated end-to-end processing latency,Simulator
+emv_handshake,array,list of EMV steps,Full EMV chip handshake sequence (Chip/Contactless only),EMVCo Book 3 v4.3
+store_and_forward,boolean,true | false,Transaction queued for later sync (offline mode),Simulator
+risk_flag,boolean,true | false,High-risk flag: offline + amount > £200,Simulator
+cfpb_compliant,boolean,true | false,Confirms receipt fields meet CFPB Reg E requirements,CFPB Reg E
+data_label,string,free text,Mandatory synthetic data disclaimer,Real Rails

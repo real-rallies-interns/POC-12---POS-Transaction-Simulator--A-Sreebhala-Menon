@@ -1,0 +1,9 @@
+{
+  "disclaimer": "SYNTHETIC — NOT REAL TRANSACTION DATA",
+  "source": "ISO 4217",
+  "currencies": [
+    {"code":"GBP","symbol":"£","weight":85,"region":"United Kingdom"},
+    {"code":"USD","symbol":"$","weight":10,"region":"United States"},
+    {"code":"EUR","symbol":"€","weight":5, "region":"Eurozone"}
+  ]
+}

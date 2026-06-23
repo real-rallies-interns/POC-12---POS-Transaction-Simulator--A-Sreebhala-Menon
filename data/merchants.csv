@@ -1,0 +1,31 @@
+name,mcc,category,city,country,lat,lng,avg_ticket,peak_hours
+Corner Deli,5812,Food & Drink,London,GBR,51.5074,-0.1278,12.5,"07-09,12-14"
+Urban Coffee,5812,Food & Drink,London,GBR,51.5155,-0.0922,6.8,"08-10,15-17"
+QuickMart,5411,Grocery,London,GBR,51.4994,-0.1248,34.2,17-20
+The Food Hall,5411,Grocery,London,GBR,51.5033,-0.1195,78.4,"11-14,17-19"
+Pharmacy Plus,5912,Health,London,GBR,51.52,-0.135,22.1,09-12
+Fuel & Go,5541,Fuel,London,GBR,51.49,-0.14,65.0,"07-09,17-19"
+BookNook,5942,Books & Media,London,GBR,51.525,-0.105,18.9,10-18
+Electronics Hub,5732,Electronics,London,GBR,51.508,-0.098,189.0,12-19
+Garden Centre,5261,Garden & Home,London,GBR,51.485,-0.155,45.6,10-16
+Apparel & Co,5651,Fashion,London,GBR,51.512,-0.142,72.3,11-19
+Waterloo Sandwiches,5812,Food & Drink,London,GBR,51.5031,-0.1132,7.9,12-14
+Kings Cross Kiosk,5994,Newsagent,London,GBR,51.5309,-0.1233,3.8,"06-09,16-19"
+City Bakery,5461,Food & Drink,Manchester,GBR,53.4808,-2.2426,8.4,07-10
+Northern Quarter Café,5812,Food & Drink,Manchester,GBR,53.4837,-2.2342,11.2,"08-11,12-15"
+Arndale Pharmacy,5912,Health,Manchester,GBR,53.4831,-2.2386,19.4,09-18
+Metro Newsagent,5994,Newsagent,Birmingham,GBR,52.4862,-1.8904,4.2,"06-09,17-20"
+Bullring Electronics,5732,Electronics,Birmingham,GBR,52.4775,-1.8937,210.0,11-19
+Brum Fuel Stop,5541,Fuel,Birmingham,GBR,52.495,-1.9,58.0,"07-09,17-19"
+Station Café,5812,Food & Drink,Edinburgh,GBR,55.9533,-3.1883,9.1,"08-10,12-14"
+Royal Mile Gifts,5947,Gifts,Edinburgh,GBR,55.95,-3.188,24.5,10-18
+Edinburgh Grocer,5411,Grocery,Edinburgh,GBR,55.9486,-3.2,41.3,16-20
+TechZone,5945,Electronics,Leeds,GBR,53.8008,-1.5491,145.0,12-19
+Victoria Quarter Café,5812,Food & Drink,Leeds,GBR,53.7997,-1.543,10.5,"09-11,12-14"
+Health Hub Pharmacy,5912,Health,Bristol,GBR,51.4545,-2.5879,28.7,09-13
+Harbourside Deli,5812,Food & Drink,Bristol,GBR,51.449,-2.599,14.3,12-15
+Sauchiehall Sportswear,5941,Sport & Leisure,Glasgow,GBR,55.8617,-4.2583,55.9,10-18
+Glasgow Central Kiosk,5994,Newsagent,Glasgow,GBR,55.8583,-4.2575,3.6,"06-09,17-20"
+Bay Bookshop,5942,Books & Media,Cardiff,GBR,51.4638,-3.168,16.7,10-18
+Cardiff Market Grocer,5411,Grocery,Cardiff,GBR,51.48,-3.1791,29.8,09-17
+Albert Dock Café,5812,Food & Drink,Liverpool,GBR,53.4008,-2.996,13.4,10-15
